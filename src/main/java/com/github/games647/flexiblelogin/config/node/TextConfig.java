@@ -109,6 +109,9 @@ public class TextConfig {
             INFO_COLOR, "Deleted account of ", TextColors.YELLOW, arg("account").optional(), "!"
     );
 
+    @Setting(comment = "If a player is online when his account is deleted, he will be kicked with this message!")
+    private Text accountDeleteKicKMessage = builder("Your account has been deleted!").color(WARNING_COLOR).build();
+
     @Setting(comment = "Kick message if the case sensitive compare between the already registered "
             + "and the joining player failed")
     private TextTemplate invalidCase = of(
@@ -375,6 +378,10 @@ public class TextConfig {
         return accountDelete.apply(ImmutableMap.of(
                 "account", account
         )).build();
+    }
+
+    public Text getAccountDeletedKickMessage() {
+        return accountDeleteKicKMessage;
     }
 
     public Text getKeyGenerated(String code) {

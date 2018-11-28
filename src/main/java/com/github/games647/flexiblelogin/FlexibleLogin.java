@@ -152,7 +152,7 @@ public class FlexibleLogin {
                 .child(injector.getInstance(UnregisterCommand.class).buildSpec(config), "unregister", "unreg")
                 .child(injector.getInstance(ForceRegisterCommand.class).buildSpec(config), "register", "reg")
                 .child(injector.getInstance(LastLoginCommand.class).buildSpec(config), "lastlogin")
-                .child(injector.getInstance(ResetPasswordCommand.class).buildSpec(config), "resetpw", "resetpassword")
+                .child(injector.getInstance(ResetPasswordCommand.class).buildSpec(config), "resetpw", "resetpassword","changepassword")
                 .child(injector.getInstance(ForceLoginCommand.class).buildSpec(config), "forcelogin")
                 .child(injector.getInstance(AccountsCommand.class).buildSpec(config), "accounts", "acc")
                 .build(), PomData.ARTIFACT_ID, "fl");

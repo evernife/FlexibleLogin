@@ -27,9 +27,12 @@ package com.github.games647.flexiblelogin.tasks;
 
 import com.github.games647.flexiblelogin.FlexibleLogin;
 
+import java.util.Optional;
 import java.util.UUID;
 
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandSource;
+import org.spongepowered.api.entity.living.player.Player;
 
 public class UnregisterTask implements Runnable {
 
@@ -55,7 +58,9 @@ public class UnregisterTask implements Runnable {
     @Override
     public void run() {
         boolean accountFound;
+        boolean usingName = false;
         if (accountIdentifier instanceof String) {
+            usingName = true;
             accountFound = plugin.getDatabase().deleteAccount((String) accountIdentifier);
         } else {
             accountFound = plugin.getDatabase().deleteAccount((UUID) accountIdentifier);
@@ -63,6 +68,17 @@ public class UnregisterTask implements Runnable {
 
         if (accountFound) {
             src.sendMessage(plugin.getConfigManager().getText().getAccountDeleted(accountIdentifier.toString()));
+
+            Optional<Player> optPlayer;
+            if (usingName){
+                optPlayer = Sponge.getServer().getPlayer((String) accountIdentifier);
+            }else {
+                optPlayer = Sponge.getServer().getPlayer((UUID) accountIdentifier);
+            }
+
+            if (optPlayer.isPresent()){
+                optPlayer.get().kick(plugin.getConfigManager().getText().getAccountDeletedKickMessage());
+            }
         } else {
             src.sendMessage(plugin.getConfigManager().getText().getAccountNotFound());
         }

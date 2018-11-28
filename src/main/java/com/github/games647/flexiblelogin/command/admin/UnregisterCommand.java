@@ -55,14 +55,16 @@ public class UnregisterCommand extends AbstractCommand {
 
     @Override
     public CommandResult execute(CommandSource src, CommandContext args) {
+
+        /* I dont want so much power on the hands of people :/
         if (args.hasAny("a")) {
             Task.builder().execute(plugin.getDatabase()::clearTable).async().submit(plugin);
             src.sendMessage(settings.getText().getTableCleared());
             return CommandResult.success();
         }
+        */
 
         User user = args.<User>getOne("user").get();
-
 
         UnregisterTask unregisterTask;
 
@@ -85,7 +87,7 @@ public class UnregisterCommand extends AbstractCommand {
         return CommandSpec.builder()
                 .executor(this)
                 .arguments(
-                        flags().flag("-all").buildWith(none()),
+                       // flags().flag("-all").buildWith(none()),
                         onlyOne(user(of("user")))
                 )
                 .build();
