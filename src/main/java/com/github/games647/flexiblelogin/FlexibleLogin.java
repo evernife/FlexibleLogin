@@ -204,12 +204,16 @@ public class FlexibleLogin {
 
         //use bcrypt as fallback for now
         hasher = config.getGeneral().getHashAlgo().createHasher();
-        if (config.getGeneral().getHashAlgo() == HashingAlgorithm.TOTP) {
-            commandManager.register(this, injector.getInstance(TwoFactorRegisterCommand.class).buildSpec(config),
-                    "register", "reg");
-        } else if (config.getGeneral().getHashAlgo() == HashingAlgorithm.BCrypt) {
-            commandManager.register(this, injector.getInstance(PasswordRegisterCommand.class).buildSpec(config),
-                    "register", "reg");
+
+        switch (config.getGeneral().getHashAlgo()){
+            case TOTP:
+                commandManager.register(this, injector.getInstance(TwoFactorRegisterCommand.class).buildSpec(config),
+                        "register", "reg");
+                break;
+            case SHA256:
+            case BCrypt:
+                commandManager.register(this, injector.getInstance(PasswordRegisterCommand.class).buildSpec(config),
+                        "register", "reg");
         }
 
         //schedule tasks

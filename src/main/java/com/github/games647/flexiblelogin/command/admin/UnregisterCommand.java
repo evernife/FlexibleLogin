@@ -28,6 +28,7 @@ package com.github.games647.flexiblelogin.command.admin;
 import com.github.games647.flexiblelogin.FlexibleLogin;
 import com.github.games647.flexiblelogin.command.AbstractCommand;
 import com.github.games647.flexiblelogin.config.Settings;
+import com.github.games647.flexiblelogin.storage.AuthMeDatabase;
 import com.github.games647.flexiblelogin.tasks.UnregisterTask;
 import com.google.inject.Inject;
 
@@ -61,11 +62,21 @@ public class UnregisterCommand extends AbstractCommand {
         }
 
         User user = args.<User>getOne("user").get();
+
+
+        UnregisterTask unregisterTask;
+
+        if (plugin.getDatabase() instanceof AuthMeDatabase){
+            unregisterTask = new UnregisterTask(plugin, src, user.getName());
+        }else {
+            unregisterTask = new UnregisterTask(plugin, src, user.getUniqueId());
+        }
         Task.builder()
                 //Async as it could run a SQL query
                 .async()
-                .execute(new UnregisterTask(plugin, src, user.getUniqueId()))
+                .execute(unregisterTask)
                 .submit(plugin);
+
         return CommandResult.success();
     }
 

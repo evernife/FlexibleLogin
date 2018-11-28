@@ -79,7 +79,7 @@ public class AuthMeDatabase extends Database {
 
     @Override
     public boolean deleteAccount(String playerName) {
-        return deleteAccount("realname", stmt -> stmt.setString(1, playerName));
+        return deleteAccount("username", stmt -> stmt.setString(1, playerName.toLowerCase()));
     }
 
     @Override
@@ -133,7 +133,7 @@ public class AuthMeDatabase extends Database {
         stmt.setString(3, account.getPassword());
         stmt.setString(4, account.getIP().map(InetAddress::getHostAddress).orElse(null));
 
-        stmt.setTimestamp(5, Timestamp.from(account.getLastLogin()));
+        stmt.setLong(  5, account.getLastLogin().toEpochMilli());
         stmt.setString(6, account.getMail().orElse(null));
     }
 

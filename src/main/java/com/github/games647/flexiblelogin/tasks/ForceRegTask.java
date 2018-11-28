@@ -33,36 +33,73 @@ import java.util.UUID;
 
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandSource;
+import org.spongepowered.api.entity.living.player.Player;
 
 public class ForceRegTask implements Runnable {
 
     private final FlexibleLogin plugin;
 
     private final CommandSource src;
-    private final UUID accountIdentifier;
+    private final Object accountIdentifier;
     private final String password;
 
-    public ForceRegTask(FlexibleLogin plugin, CommandSource src, UUID accountIdentifier, String password) {
+    public ForceRegTask(FlexibleLogin plugin, CommandSource src, String password, Object accountIdentifier) {
         this.plugin = plugin;
         this.src = src;
-        this.accountIdentifier = accountIdentifier;
         this.password = password;
+        this.accountIdentifier = accountIdentifier;
     }
+
+    public ForceRegTask(FlexibleLogin plugin, CommandSource src, String password, String playerName) {
+        this(plugin, src, password, (Object) playerName);
+    }
+
+    public ForceRegTask(FlexibleLogin plugin, CommandSource src, String password, UUID uuid) {
+        this(plugin, src, password, (Object) uuid);
+    }
+
+
 
     @Override
     public void run() {
-        Optional<Account> optAccount = plugin.getDatabase().loadAccount(accountIdentifier);
+        Optional<Player> player;
+        Optional<Account> optAccount;
+
+        boolean ustinPlayerName = false;
+        if (accountIdentifier instanceof String) {
+            ustinPlayerName = true;
+            player = Sponge.getServer().getPlayer((String) accountIdentifier);
+            optAccount = player.map(player1 -> plugin.getDatabase().getAccount(player1))
+                    .orElseGet(() -> plugin.getDatabase().loadAccount((String) accountIdentifier));
+        }else {
+            player = Sponge.getServer().getPlayer((UUID) accountIdentifier);
+            optAccount = player.map(player1 -> plugin.getDatabase().getAccount(player1))
+                    .orElseGet(() -> plugin.getDatabase().loadAccount((UUID) accountIdentifier));
+        }
 
         if (optAccount.isPresent()) {
             src.sendMessage(plugin.getConfigManager().getText().getAccountAlreadyExists());
         } else {
             try {
                 String hash = plugin.getHasher().hash(password);
-                Account account = new Account(accountIdentifier, "", hash, null);
+                Account account;
+
+                if (ustinPlayerName){
+                    account = new Account(null,(String)accountIdentifier , hash, null);
+                }else {
+                    account = new Account((UUID)accountIdentifier, "", hash, null);
+                }
                 plugin.getDatabase().createAccount(account);
 
-                if (Sponge.getServer().getPlayer(accountIdentifier).isPresent()) {
-                    plugin.getDatabase().addCache(accountIdentifier, account);
+                Optional<Player> optPlayer;
+                if (ustinPlayerName){
+                    optPlayer = Sponge.getServer().getPlayer((String) accountIdentifier);
+                }else {
+                    optPlayer = Sponge.getServer().getPlayer((UUID) accountIdentifier);
+                }
+
+                if (optPlayer.isPresent()){
+                    plugin.getDatabase().addCache(optPlayer.get().getUniqueId(), account);
                 }
 
                 src.sendMessage(plugin.getConfigManager().getText().getForceRegisterSuccess());

@@ -28,7 +28,8 @@ package com.github.games647.flexiblelogin.command.admin;
 import com.github.games647.flexiblelogin.FlexibleLogin;
 import com.github.games647.flexiblelogin.command.AbstractCommand;
 import com.github.games647.flexiblelogin.config.Settings;
-import com.github.games647.flexiblelogin.tasks.UUIDResetPwTask;
+import com.github.games647.flexiblelogin.storage.AuthMeDatabase;
+import com.github.games647.flexiblelogin.tasks.ResetPwTask;
 import com.google.inject.Inject;
 
 import org.slf4j.Logger;
@@ -56,11 +57,17 @@ public class ResetPasswordCommand extends AbstractCommand {
         User user = args.<User>getOne("user").get();
         String password = args.<String>getOne("password").get();
 
+        ResetPwTask resetPwTask;
+        if (plugin.getDatabase() instanceof AuthMeDatabase){
+            resetPwTask = new ResetPwTask(plugin, src, password, user.getName());
+        }else {
+            resetPwTask = new ResetPwTask(plugin, src, password, user.getUniqueId());
+        }
         //check if the account is a valid player name
         Task.builder()
                 //Async as it could run a SQL query
                 .async()
-                .execute(new UUIDResetPwTask(plugin, src, password, user.getUniqueId()))
+                .execute(resetPwTask)
                 .submit(plugin);
         return CommandResult.success();
     }

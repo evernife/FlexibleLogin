@@ -28,7 +28,9 @@ package com.github.games647.flexiblelogin.command.admin;
 import com.github.games647.flexiblelogin.FlexibleLogin;
 import com.github.games647.flexiblelogin.command.AbstractCommand;
 import com.github.games647.flexiblelogin.config.Settings;
+import com.github.games647.flexiblelogin.storage.AuthMeDatabase;
 import com.github.games647.flexiblelogin.tasks.ForceRegTask;
+import com.github.games647.flexiblelogin.tasks.ResetPwTask;
 import com.google.inject.Inject;
 
 import java.util.Optional;
@@ -62,20 +64,28 @@ public class ForceRegisterCommand extends AbstractCommand {
         User user = args.<User>getOne("user").get();
         String password = args.<String>getOne("password").get();
 
-        uuidRegister(user.getUniqueId(), src, password);
+        uuidRegister(user, src, password);
         return CommandResult.success();
     }
 
-    private void uuidRegister(UUID account, CommandSource src, String password) throws CommandException {
+    private void uuidRegister(User user, CommandSource src, String password) throws CommandException {
         //check if the account is an UUID
-        Optional<Player> player = Sponge.getServer().getPlayer(account);
+        Optional<Player> player = Sponge.getServer().getPlayer(user.getUniqueId());
         if (player.isPresent()) {
             throw new CommandException(settings.getText().getForceRegisterOnline());
         } else {
+
+            ForceRegTask forceRegTask;
+            if (plugin.getDatabase() instanceof AuthMeDatabase){
+                forceRegTask = new ForceRegTask(plugin, src, password, user.getName());
+            }else {
+                forceRegTask = new ForceRegTask(plugin, src, password, user.getUniqueId());
+            }
+
             Task.builder()
                     //Async as it could run a SQL query
                     .async()
-                    .execute(new ForceRegTask(plugin, src, account, password))
+                    .execute(forceRegTask)
                     .submit(plugin);
         }
     }

@@ -35,29 +35,44 @@ import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.entity.living.player.Player;
 
-public class UUIDResetPwTask implements Runnable {
+public class ResetPwTask implements Runnable {
 
     private final FlexibleLogin plugin;
 
     private final CommandSource src;
     private final String password;
-    private final UUID uuid;
 
-    public UUIDResetPwTask(FlexibleLogin plugin, CommandSource src, String password, UUID uuid) {
+    private final Object accountIdentifier;
+
+    public ResetPwTask(FlexibleLogin plugin, CommandSource src, String password, Object accountIdentifier) {
         this.plugin = plugin;
         this.src = src;
         this.password = password;
 
-        this.uuid = uuid;
+        this.accountIdentifier = accountIdentifier;
+    }
+
+    public ResetPwTask(FlexibleLogin plugin, CommandSource src, String password, String playerName) {
+        this(plugin, src, password, (Object) playerName);
+    }
+
+    public ResetPwTask(FlexibleLogin plugin, CommandSource src, String password, UUID uuid) {
+        this(plugin, src, password, (Object) uuid);
     }
 
     @Override
     public void run() {
-        Optional<Player> player = Sponge.getServer().getPlayer(uuid);
-
+        Optional<Player> player;
         Optional<Account> account;
-        account = player.map(player1 -> plugin.getDatabase().getAccount(player1))
-                .orElseGet(() -> plugin.getDatabase().loadAccount(uuid));
+        if (accountIdentifier instanceof String) {
+            player = Sponge.getServer().getPlayer((String) accountIdentifier);
+            account = player.map(player1 -> plugin.getDatabase().getAccount(player1))
+                    .orElseGet(() -> plugin.getDatabase().loadAccount((String) accountIdentifier));
+        }else {
+            player = Sponge.getServer().getPlayer((UUID) accountIdentifier);
+            account = player.map(player1 -> plugin.getDatabase().getAccount(player1))
+                    .orElseGet(() -> plugin.getDatabase().loadAccount((UUID) accountIdentifier));
+        }
 
         if (account.isPresent()) {
             resetPassword(account.get());

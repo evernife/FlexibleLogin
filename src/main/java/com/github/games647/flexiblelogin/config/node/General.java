@@ -28,6 +28,7 @@ package com.github.games647.flexiblelogin.config.node;
 import com.github.games647.flexiblelogin.PomData;
 import com.github.games647.flexiblelogin.hasher.BcryptHasher;
 import com.github.games647.flexiblelogin.hasher.Hasher;
+import com.github.games647.flexiblelogin.hasher.Sha256;
 import com.github.games647.flexiblelogin.hasher.TOTP;
 import com.google.common.collect.Lists;
 
@@ -49,7 +50,7 @@ public class General {
     @Setting(comment = "Email configuration for password recovery")
     private MailConfig emailConfiguration = new MailConfig();
 
-    @Setting(comment = "Algorithms for hashing user passwords. You can also choose totp")
+    @Setting(comment = "Algorithms for hashing user passwords. You can also choose totp or SHA256")
     private HashingAlgorithm hashAlgo = HashingAlgorithm.BCrypt;
 
     @Setting(comment = "Regular expression for verifying validate player names. Default is a-zA-Z with 2-16 length")
@@ -214,12 +215,16 @@ public class General {
 
         BCrypt,
 
+        SHA256,
+
         TOTP;
 
         public Hasher createHasher() {
             switch (this) {
                 case TOTP:
                     return new TOTP();
+                case SHA256:
+                    return new Sha256();
                 case BCrypt:
                 default:
                     return new BcryptHasher();
